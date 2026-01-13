@@ -12,8 +12,28 @@ st.set_page_config(
     page_title="Ligue 1 - Classement live",
     layout="wide"
 )
+st.markdown(
+    "<h1 style='color:#6ADFF7;text-align:center;'> Ligue 1 savoir ⚽</h1>",
+    unsafe_allow_html=True
+)
 
-st.title("⚽ Analyse du championnat de France de football Ligue 1 ")
+st.subheader("Intro")
+st.write("Bienvenue sur le projet **Ligue 1 savoir**, réalisé et publié par  Steeve  le Dimanche 11 Janvier 2026. Ce projet a pour but de présenter l’analyse de donnée .  ")
+st.write("Nommée « Ligue 1 savoir » , car l’objectif c’est le savoir et pas l’avoir . Nous allons donc essayer de comprendre en profondeur, c’est quoi la ligue 1 . Pour ceux qui ne savent rien , vraiment rien … la « Ligue 1 » , c’est le plus haut niveau du championnat de France de football . ")
+st.write(" Le premier chapitre de cette analyse portera sur le tableau  « Classement Général » . Ce tableau , résume ce qui se passe d’une manière général dans la Ligue 1 . Ce tableau est en streaming live, donc actualisé en temps réel . Les graphiques sont aussi en temps réel , seul les légendes de graphique et les titres sont manuels ( actualisé une fois par mois ). ")
+st.subheader("Légende des colonnes")
+st.write("Voici la légende des colonnes du « Classement Général » : ")
+st.write("**Equipe** : le nom de l’équipe en question")
+st.write("**Rang** : Place dans le classement ")
+st.write("**Points** : Nombre de point ( relatif à la place du classement )")
+st.write("**Joués** : Numéro de la journée ")
+st.write("**Match_gagnee** : Nombre de match gagné par l’équipe")
+st.write("**Match_nul** : Nombre de match nul réalisé par l’équipe ")
+st.write("**Match_perdu** : Nombre de match perdu par l’équipe")
+st.write("**But_mis** : Nombre de but marqué par l’équipe")
+st.write("**But_pris** : Nombre de but pris par l’équipe ")
+st.write("**Difference_but** : Soustraction entre le nombre de but marqué et le nombre de but pris .")
+
 
 # -----------------------------
 # SCRAPING (AVEC CACHE)
