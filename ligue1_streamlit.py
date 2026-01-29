@@ -8,6 +8,7 @@ import seaborn as sns
 # -----------------------------
 # CONFIG STREAMLIT
 # -----------------------------
+st.page_link("nassim_one.py", label="Nassim page", icon="🏠")
 st.set_page_config(
     page_title="Ligue 1 - Classement live",
     layout="wide"
@@ -96,7 +97,7 @@ st.dataframe(df, use_container_width=True)
 
 
 
-
+df.sort_values(["But_mis"] , ascending=True)
 
 
 st.subheader("Faut-il marquer beaucoup pour gagner le championnat ? ( Comparaison Buts mis/ Points final )")
@@ -110,11 +111,63 @@ st.bar_chart(
 
 
 
+
+import altair as alt
+
+df_reset = df.reset_index()
+
+st.write("Légende : Voici un nuage de point et un droite de regression linéaire. ")
+st.write("Explication : Plus un point est aloigné de la droite, moins son comportement est normal. Ainsi , Lens, ,Le Havre , Lyon et Metz contredise la théorie qu'il faut marquer pour gagner")
+points = alt.Chart(df_reset).mark_circle(size=80).encode(
+    x=alt.X("But_mis:Q", title="Buts marqués"),
+    y=alt.Y("Points:Q", title="Points"),
+    color=alt.Color("Equipe:N", legend=None),
+    tooltip=["Equipe", "But_mis", "Points"]
+)
+
+regression = points.transform_regression(
+    "But_mis",
+    "Points"
+).mark_line(color="red", size=3)
+
+chart = (points + regression).properties(
+    width=800,
+    height=800
+)
+
+
+
+
+col1, col2, col3 = st.columns([1, 2, 1])
+with col2:
+    st.altair_chart(chart, use_container_width=False)
+
+
 st.subheader("Quelle équipe est la plus ennuyante A ?( Histogramme des matchs nuls)")
 
-st.write("Légende: Ce visuel montre quelle sont les équipe qui font le plus de match nul . Et c'est Lorient qui gagne !")
-st.bar_chart(df["Match_nul"])
+st.write("Légende: Ce visuel montre quelle sont les équipe qui font le plus de match nul . Et c'est Lorient, le Havre et Rennes qui gagnent avec 7 matchs nuls chacun")
+
+
+
+
+import altair as alt
+
+df_sorted = df.sort_values("Match_nul", ascending=True).reset_index()
+
+chart = alt.Chart(df_sorted).mark_bar(color="#b852dd").encode(
+    x=alt.X("Equipe:N", sort=None),
+    y=alt.Y("Match_nul:Q")
+)
+
+st.altair_chart(chart, use_container_width=True)
+
+
 st.write('Réponse :')
+
+
+
+
+
 
 st.subheader("Quelle équipe est la plus ennuyante B ?(Cammembert des matchs nuls)")
 
