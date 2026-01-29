@@ -409,7 +409,7 @@ def scrape_all_pharmacies(urls):
 def main(search_url):
     
 
-    driver = create_driver(headless=True)
+    driver = create_driver(headless=False)
 
     try:
         urls = get_pharmacy_urls(driver, search_url)
@@ -433,7 +433,7 @@ with st.form("my_form"):
     if submitted:
         st.write("ATTENDRE 30 SECONDES ")
         st.write(reason)
-        df = main(reason)
+        df = main("https://www.pagesjaunes.fr/annuaire/chercherlespros?quoiqui=poisson&ou=Essonne+%2891%29&univers=pagesjaunes&idOu=")
         st.dataframe(df)
 
 st.write("-----------")
