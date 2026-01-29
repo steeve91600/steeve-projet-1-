@@ -302,10 +302,7 @@ st.write("--------------------------------ELDORADO VERSION 1 -------------------
 st.write("------------------------------------------------------------------------------------")
 
 
-
 import streamlit as st
-
-
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
@@ -316,10 +313,16 @@ from webdriver_manager.chrome import ChromeDriverManager
 import pandas as pd
 import time
 
+# -----------------------------
+# Création du driver
+# -----------------------------
 def create_driver(headless=True):
     options = Options()
     if headless:
-        options.add_argument("--headless=new")
+        options.add_argument("--headless=new")  # mode invisible
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--disable-gpu")
     options.add_argument("--window-size=1920,1080")
     options.add_argument(
         "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -331,13 +334,14 @@ def create_driver(headless=True):
         options=options
     )
 
-
+# -----------------------------
+# Récupération des URLs
+# -----------------------------
 def get_pharmacy_urls(driver, search_url):
     base_url = "https://www.pagesjaunes.fr"
     urls = []
 
     driver.get(search_url)
-
     wait = WebDriverWait(driver, 15)
     wait.until(
         EC.presence_of_all_elements_located(
@@ -360,7 +364,9 @@ def get_pharmacy_urls(driver, search_url):
 
     return list(set(urls))  # supprime les doublons
 
-
+# -----------------------------
+# Scraping d'une pharmacie
+# -----------------------------
 def scrape_pharmacy(driver, url):
     driver.get(url)
 
@@ -391,7 +397,9 @@ def scrape_pharmacy(driver, url):
         "Adresse": adresse_complete
     }
 
-
+# -----------------------------
+# Scraping global
+# -----------------------------
 def scrape_all_pharmacies(urls):
     driver = create_driver(headless=True)
     data = []
@@ -404,12 +412,12 @@ def scrape_all_pharmacies(urls):
 
     return pd.DataFrame(data)
 
-
-
+# -----------------------------
+# Fonction principale
+# -----------------------------
 def main(search_url):
-    
-
-    driver = create_driver(headless=False)
+    # 👈 Chrome invisible
+    driver = create_driver(headless=True)
 
     try:
         urls = get_pharmacy_urls(driver, search_url)
@@ -419,23 +427,19 @@ def main(search_url):
     df = scrape_all_pharmacies(urls)
     return df
 
+# -----------------------------
+# Interface Streamlit
+# -----------------------------
+st.set_page_config(page_title="Scraper Pharmacies", layout="wide")
+st.title("💊 Scraper Pharmacies – PagesJaunes")
 
-
-
-
-
-
-
-        
 with st.form("my_form"):
-    reason = st.text_input("Write here ...")
+    reason = st.text_input("Colle ici l'URL PagesJaunes ...")
+    submitted = st.form_submit_button("Lancer le scraping")
 
-    # Every form must have a submit button.
-    submitted = st.form_submit_button("Send")
-    if submitted:
-        st.write("ATTENDRE 30 SECONDES ")
-        st.write(reason)
-        df = main(reason)
-        st.dataframe(df)
-
-st.write("-----------")
+if submitted:
+    st.write("⌛ ATTENDRE 30 SECONDES …")
+    df = main(reason)
+    st.success(f"✅ {len(df)} pharmacies récupérées")
+    st.dataframe(df)
+    st.write("-----------")
