@@ -10,10 +10,10 @@ import seaborn as sns
 # -----------------------------
 
 st.set_page_config(
-    page_title="Ligue 1 - Classement live",
+    page_title="Ligue 2 - Classement live",
     layout="wide"
 )
-st.page_link("nassim_one.py", label="Home", icon="🏠")
+
 
 st.markdown(
     "<h1 style='color:#6ADFF7;text-align:center;'> Ligue 1 savoir ⚽</h1>",
@@ -425,6 +425,8 @@ def main(search_url):
 
 
 
+
+        
 with st.form("my_form"):
     reason = st.text_input("Write here ...")
 
@@ -433,7 +435,7 @@ with st.form("my_form"):
     if submitted:
         st.write("ATTENDRE 30 SECONDES ")
         st.write(reason)
-        df = main("https://www.pagesjaunes.fr/annuaire/chercherlespros?quoiqui=poisson&ou=Essonne+%2891%29&univers=pagesjaunes&idOu=")
+        df = main(reason)
         st.dataframe(df)
 
 st.write("-----------")
