@@ -434,3 +434,59 @@ if submitted:
     st.success(f"✅ {len(df)} pharmacies récupérées")
     st.dataframe(df)
     st.write("-----------")
+
+
+
+
+
+
+
+import streamlit as st      
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import pandas as pd
+import requests
+import time
+url = "https://www.pagesjaunes.fr/annuaire/chercherlespros?quoiqui=edition%20de%20logiciel&ou=paris-75&page=2"
+options = Options()
+options.add_argument("--headless")
+
+driver = webdriver.Chrome(
+    service=Service(ChromeDriverManager().install()),
+    options=options
+)
+
+driver.get(url)
+time.sleep(5)  # attendre le chargement JS
+base_url = "https://www.pagesjaunes.fr"
+
+# Récupérer tous les href relatifs et les convertir en URL complètes
+elements = driver.find_elements(By.CSS_SELECTOR, 'a.bi-denomination.pj-link')
+max_urls = []
+for e in elements:
+        href = e.get_attribute("href")
+        if href.startswith("/"):  # href relatif
+            full_url = base_url + href
+        else:  # href déjà complet
+            full_url = href
+        max_urls.append(full_url)  # ajouter tous les liens complets
+        print(full_url)
+
+
+driver.quit()
+
+# La liste finale de tous les liens complets
+max_urls
+# Filtrer les liens : supprimer ceux contenant "annuaire"
+max_urls_filtered = [url for url in max_urls if "annuaire" not in url]
+
+# Vérifier
+max_urls_filtered
+df = pd.DataFrame(max_urls_filtered)
+st.dataframe(df)
