@@ -13,7 +13,7 @@ st.set_page_config(
     page_title="Ligue 1 - Classement live",
     layout="wide"
 )
-
+st.page_link("nassim_one.py", label="Home", icon="🏠")
 
 st.markdown(
     "<h1 style='color:#6ADFF7;text-align:center;'> Ligue 1 savoir ⚽</h1>",
