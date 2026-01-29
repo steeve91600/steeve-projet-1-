@@ -409,7 +409,7 @@ def scrape_all_pharmacies(urls):
 def main(search_url):
     
 
-    driver = create_driver(headless=False)
+    driver = create_driver(headless=True)
 
     try:
         urls = get_pharmacy_urls(driver, search_url)
