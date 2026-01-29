@@ -301,145 +301,120 @@ st.write("----------------------------------------------------------------------
 st.write("--------------------------------ELDORADO VERSION 1 --------------------------------")
 st.write("------------------------------------------------------------------------------------")
 
-
 import streamlit as st
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from webdriver_manager.chrome import ChromeDriverManager
+import requests
+from bs4 import BeautifulSoup
 import pandas as pd
 import time
 
 # -----------------------------
-# Création du driver
+# Configuration
 # -----------------------------
-def create_driver(headless=True):
-    options = Options()
-    if headless:
-        options.add_argument("--headless=new")  # mode invisible
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--disable-gpu")
-    options.add_argument("--window-size=1920,1080")
-    options.add_argument(
-        "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/120.0.0.0 Safari/537.36"
     )
-
-    return webdriver.Chrome(
-        service=Service(ChromeDriverManager().install()),
-        options=options
-    )
+}
+BASE_URL = "https://www.pagesjaunes.fr"
 
 # -----------------------------
-# Récupération des URLs
+# Récupération des URLs de pharmacie
 # -----------------------------
-def get_pharmacy_urls(driver, search_url):
-    base_url = "https://www.pagesjaunes.fr"
-    urls = []
+def get_pharmacy_urls(search_url):
+    urls = set()
+    response = requests.get(search_url, headers=HEADERS, timeout=15)
+    response.raise_for_status()
+    soup = BeautifulSoup(response.text, "lxml")
 
-    driver.get(search_url)
-    wait = WebDriverWait(driver, 15)
-    wait.until(
-        EC.presence_of_all_elements_located(
-            (By.CSS_SELECTOR, 'a.bi-denomination.pj-link')
-        )
-    )
-
-    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-    time.sleep(2)
-
-    elements = driver.find_elements(By.CSS_SELECTOR, 'a.bi-denomination.pj-link')
-
-    for e in elements:
-        href = e.get_attribute("href")
+    for a in soup.select("a.bi-denomination"):
+        href = a.get("href")
         if href:
             if href.startswith("/"):
-                href = base_url + href
+                href = BASE_URL + href
             if "annuaire" not in href:
-                urls.append(href)
-
-    return list(set(urls))  # supprime les doublons
+                urls.add(href)
+    return list(urls)
 
 # -----------------------------
-# Scraping d'une pharmacie
+# Scraping d'une seule pharmacie
 # -----------------------------
-def scrape_pharmacy(driver, url):
-    driver.get(url)
-
-    # Nom
+def scrape_pharmacy(url):
     try:
-        nom = WebDriverWait(driver, 10).until(
-            EC.visibility_of_element_located(
-                (By.CSS_SELECTOR, "div.col-sm-7.col-md-8.col-lg-9.denom h1")
-            )
-        ).text.replace("\nOuvrir la tooltip", "").strip()
-    except:
-        nom = None
+        response = requests.get(url, headers=HEADERS, timeout=15)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, "lxml")
 
-    # Adresse(s)
-    try:
-        elements = driver.find_elements(
-            By.CSS_SELECTOR,
-            "a.teaser-item.black-icon.address.streetAddress.map-click-zon.pj-lb.pj-link span"
-        )
-        adresses = [e.text.strip() for e in elements if "Loca" not in e.text]
-        adresse_complete = " | ".join(adresses)
-    except:
-        adresse_complete = None
+        # Nom
+        nom_tag = soup.select_one("div.denom h1")
+        nom = nom_tag.get_text(strip=True) if nom_tag else None
 
-    return {
-        "URL": url,
-        "Nom_Entreprise": nom,
-        "Adresse": adresse_complete
-    }
+        # Adresse
+        adresses = []
+        for span in soup.select("a.address span"):
+            txt = span.get_text(strip=True)
+            if txt and "Localiser" not in txt:
+                adresses.append(txt)
+        adresse_complete = " | ".join(adresses) if adresses else None
+
+        return {
+            "URL": url,
+            "Nom_Entreprise": nom,
+            "Adresse": adresse_complete
+        }
+    except:
+        return {
+            "URL": url,
+            "Nom_Entreprise": None,
+            "Adresse": None
+        }
 
 # -----------------------------
 # Scraping global
 # -----------------------------
-def scrape_all_pharmacies(urls):
-    driver = create_driver(headless=True)
+def scrape_all_pharmacies(search_url):
+    urls = get_pharmacy_urls(search_url)
     data = []
 
-    try:
-        for url in urls:
-            data.append(scrape_pharmacy(driver, url))
-    finally:
-        driver.quit()
+    progress = st.progress(0)
+
+    for i, url in enumerate(urls, start=1):
+        data.append(scrape_pharmacy(url))
+        progress.progress(i / len(urls))
+        time.sleep(0.5)  # anti-blocage PagesJaunes
 
     return pd.DataFrame(data)
-
-# -----------------------------
-# Fonction principale
-# -----------------------------
-def main(search_url):
-    # 👈 Chrome invisible
-    driver = create_driver(headless=True)
-
-    try:
-        urls = get_pharmacy_urls(driver, search_url)
-    finally:
-        driver.quit()
-
-    df = scrape_all_pharmacies(urls)
-    return df
 
 # -----------------------------
 # Interface Streamlit
 # -----------------------------
 st.set_page_config(page_title="Scraper Pharmacies", layout="wide")
 st.title("💊 Scraper Pharmacies – PagesJaunes")
+st.write("Colle une URL de recherche PagesJaunes (ex : pharmacies à Paris)")
 
-with st.form("my_form"):
-    reason = st.text_input("Colle ici l'URL PagesJaunes ...")
+with st.form("search_form"):
+    search_url = st.text_input(
+        "URL PagesJaunes",
+        placeholder="https://www.pagesjaunes.fr/recherche/pharmacie/paris"
+    )
     submitted = st.form_submit_button("Lancer le scraping")
 
 if submitted:
-    st.write("⌛ ATTENDRE 30 SECONDES …")
-    df = main(reason)
-    st.success(f"✅ {len(df)} pharmacies récupérées")
-    st.dataframe(df)
-    st.write("-----------")
+    if not search_url.startswith("http"):
+        st.error("❌ URL invalide")
+    else:
+        with st.spinner("Scraping en cours... (≈ 30 secondes)"):
+            df = scrape_all_pharmacies(search_url)
+
+        st.success(f"✅ {len(df)} pharmacies récupérées")
+        st.dataframe(df)
+
+        # Téléchargement CSV
+        csv = df.to_csv(index=False).encode("utf-8")
+        st.download_button(
+            "⬇️ Télécharger en CSV",
+            csv,
+            "pharmacies_pagesjaunes.csv",
+            "text/csv"
+        )
