@@ -36,7 +36,7 @@ st.write("**Match_perdu** : Nombre de match perdu par l’équipe")
 st.write("**But_mis** : Nombre de but marqué par l’équipe")
 st.write("**But_pris** : Nombre de but pris par l’équipe ")
 st.write("**Difference_but** : Soustraction entre le nombre de but marqué et le nombre de but pris .")
-
+st.write("**Addition_but** : Addition entre les buts marqués et les buts encaissés .")
 
 # -----------------------------
 # SCRAPING (AVEC CACHE)
@@ -84,6 +84,8 @@ def load_data():
 
 
 df = load_data()
+
+df['Addition_but']=df["But_mis"]+df["But_pris"]
 
 # -----------------------------
 # AFFICHAGE
@@ -207,7 +209,11 @@ st.bar_chart(
     color=["#EA61CA","#80AFF1"],
     stack=False
 )
-st.subheader("Qui aime l'action ? ( Comparaison Buts mis/ But pris )")
+
+
+
+
+st.subheader("Qui est le plus équilibré ? ( Comparaison Buts mis/ But pris )")
 st.write('Légende : Ce rapport compare les Buts mis et les Buts pris . Ainsi Monaco semble aimer mettre des buts et prendre des but !')
 st.bar_chart(
     df[["But_mis", "But_pris"]],
@@ -217,7 +223,77 @@ st.bar_chart(
 
 
 
+st.subheader("Qui est le plus équilibré B ? ( Comparaison Buts mis/ But pris )")
+df_reset = df.reset_index()
 
+st.write("Légende : Voici un nuage de point et un droite de regression linéaire. ")
+st.write("Explication : Plus un point est aloigné de la droite, moins il est equilibré")
+points = alt.Chart(df_reset).mark_circle(size=80).encode(
+    x=alt.X("But_mis:Q", title="Buts marqués"),
+    y=alt.Y("But_pris:Q", title="Buts encaissé"),
+    color=alt.Color("Equipe:N", legend=None),
+    tooltip=["Equipe", "But_mis", "But_pris"]
+)
+
+regression = points.transform_regression(
+    "But_mis",
+    "Points"
+).mark_line(color="red", size=3)
+
+chart = (points + regression).properties(
+    width=800,
+    height=800
+)
+
+
+
+
+col1, col2, col3 = st.columns([1, 2, 1])
+with col2:
+    st.altair_chart(chart, use_container_width=False)
+
+
+
+st.subheader("Qui fait le spectacle ?( But marqué + But encaissé )")
+
+st.write("Légende: Ce visuel montre quelle sont les équipe qui font le plus de match nul . Et c'est Lorient, le Havre et Rennes qui gagnent avec 7 matchs nuls chacun")
+
+
+
+
+import altair as alt
+
+df_sorted = df.sort_values("Addition_but", ascending=True).reset_index()
+
+chart = alt.Chart(df_sorted).mark_bar(color="#b852dd").encode(
+    x=alt.X("Equipe:N", sort=None),
+    y=alt.Y("Match_nul:Q")
+)
+
+st.altair_chart(chart, use_container_width=True)
+
+
+st.subheader("Peut-on marquer beaucoup de but et faire beaucoup de match nul ? ")
+st.write("Légende: De ce graphique ce détache Le Havre qui fait beaucoup de match nul et ne montre pas beaucoup de but ")
+
+import altair as alt
+import streamlit as st
+
+df_alt = df.reset_index()  # index = Equipe
+
+chart = alt.Chart(df_alt).mark_circle(size=80).encode(
+    x=alt.X('Addition_but:Q', title='Addition but'),
+    y=alt.Y('Match_nul:Q', title='Match nul'),
+    color=alt.Color('Equipe:N', legend=alt.Legend(title="Équipe")),
+    tooltip=['Equipe:N', 'Addition_but:Q', 'Match_nul:Q']
+).properties(
+    title="Nuage de points : Addition but vs Match nul"
+)
+
+st.altair_chart(chart, use_container_width=True)
+
+
+"----------------------------------"
 
 col1, col2, col3 = st.columns(3)
 
@@ -292,6 +368,27 @@ with col3:
 st.subheader("Statistiques descriptives")
 st.dataframe(df.describe())
 
+
+import altair as alt
+import streamlit as st
+
+# remettre l'index en colonne
+df_alt = df.reset_index()   # suppose que l'index s'appelle "Equipe"
+
+chart = alt.Chart(df_alt).mark_circle(size=80).encode(
+    x=alt.X('But_pris:Q', title='Buts pris'),
+    y=alt.Y('But_mis:Q', title='Buts mis'),
+    color=alt.Color(
+        'Points:Q',
+        scale=alt.Scale(scheme='viridis'),
+        title='Points'
+    ),
+    tooltip=['Equipe:N', 'But_pris:Q', 'But_mis:Q', 'Points:Q']
+).properties(
+    title="Nuage de points : couleur = Points"
+)
+
+st.altair_chart(chart, use_container_width=True)
 
 
 
