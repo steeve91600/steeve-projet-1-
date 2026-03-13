@@ -7,3 +7,4 @@ seaborn
 Altair
 selenium
 webdriver-manager
+plotly
