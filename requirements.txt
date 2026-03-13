@@ -8,3 +8,4 @@ Altair
 selenium
 webdriver-manager
 plotly
+openpyxl
