@@ -10,7 +10,7 @@ import seaborn as sns
 # -----------------------------
 
 st.set_page_config(
-    page_title="Ligue 2 - Classement live",
+    page_title="Ligue 1 - Analyse",
     layout="wide"
 )
 
@@ -105,6 +105,18 @@ df.sort_values(["But_mis"] , ascending=True)
 
 
 st.subheader("Faut-il marquer beaucoup pour gagner le championnat ? ( Comparaison Buts mis/ Points final )")
+
+
+st.write("Légende : Ce premier tableau montre une simple division entre le nombre de point et le nombre de but .Voici donc comme resulta un Rapport point/but .Pour bien expliquer , l'équipe en haut du tableau est une equipe qui marque beaucou^p de but mais a beaucuop de points au classement")
+
+
+df['Rapport_but_point']=df['But_mis']/df['Points']
+kiki=df[['Rapport_but_point','But_mis','Points']]
+kiki2=kiki.sort_values('Rapport_but_point',ascending=True)
+styled_df = kiki2.style.background_gradient(subset=['Rapport_but_point'], cmap="Blues")
+
+st.dataframe(styled_df, use_container_width=True)
+
 st.write("Légende : Ce visuel compare le nombre de buts mis et le nombre de point. Et la réponse est que Lens domine ce championnat mais marque peu. Ce qui est triste car Marseille et Paris FC marque beaucoup sans penser à gagner le match !")
 st.bar_chart(
     df[["But_mis", "Points"]],
@@ -173,23 +185,7 @@ st.write('Réponse :')
 
 
 
-st.subheader("Quelle équipe est la plus ennuyante B ?(Cammembert des matchs nuls)")
 
-st.write("Légende: Ce visuel montre quelle sont les équipe qui font le plus de match nul . Et c'est Lorient qui gagne !")
-
-fig, ax = plt.subplots(figsize=(12, 4))
-
-ax.pie(
-    df["Match_nul"],
-    labels=df.index,
-    autopct="%1.1f%%",
-    
-    startangle=90
-)
-
-ax.axis("equal")  # cercle parfait
-
-st.pyplot(fig, use_container_width=False)
 
 
 st.subheader("Les buts font-ils le classement? (Comparaison Points / Différence de buts")
@@ -392,198 +388,3 @@ st.altair_chart(chart, use_container_width=True)
 
 
 
-
-
-st.write("------------------------------------------------------------------------------------")
-st.write("--------------------------------ELDORADO VERSION 1 --------------------------------")
-st.write("------------------------------------------------------------------------------------")
-
-
-import streamlit as st
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from webdriver_manager.chrome import ChromeDriverManager
-import pandas as pd
-import time
-
-# -----------------------------
-# Création du driver
-# -----------------------------
-def create_driver(headless=True):
-    options = Options()
-    options.add_argument("--headless")
-
-    return webdriver.Chrome(
-        service=Service(ChromeDriverManager().install()),
-        options=options
-    )
-
-# -----------------------------
-# Récupération des URLs
-# -----------------------------
-def get_pharmacy_urls(driver, search_url):
-    base_url = "https://www.pagesjaunes.fr"
-    urls = []
-
-    driver.get(search_url)
-    wait = WebDriverWait(driver, 15)
-    wait.until(
-        EC.presence_of_all_elements_located(
-            (By.CSS_SELECTOR, 'a.bi-denomination.pj-link')
-        )
-    )
-
-    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-    time.sleep(2)
-
-    elements = driver.find_elements(By.CSS_SELECTOR, 'a.bi-denomination.pj-link')
-
-    for e in elements:
-        href = e.get_attribute("href")
-        if href:
-            if href.startswith("/"):
-                href = base_url + href
-            if "annuaire" not in href:
-                urls.append(href)
-
-    return list(set(urls))  # supprime les doublons
-
-# -----------------------------
-# Scraping d'une pharmacie
-# -----------------------------
-def scrape_pharmacy(driver, url):
-    driver.get(url)
-
-    # Nom
-    try:
-        nom = WebDriverWait(driver, 10).until(
-            EC.visibility_of_element_located(
-                (By.CSS_SELECTOR, "div.col-sm-7.col-md-8.col-lg-9.denom h1")
-            )
-        ).text.replace("\nOuvrir la tooltip", "").strip()
-    except:
-        nom = None
-
-    # Adresse(s)
-    try:
-        elements = driver.find_elements(
-            By.CSS_SELECTOR,
-            "a.teaser-item.black-icon.address.streetAddress.map-click-zon.pj-lb.pj-link span"
-        )
-        adresses = [e.text.strip() for e in elements if "Loca" not in e.text]
-        adresse_complete = " | ".join(adresses)
-    except:
-        adresse_complete = None
-
-    return {
-        "URL": url,
-        "Nom_Entreprise": nom,
-        "Adresse": adresse_complete
-    }
-
-# -----------------------------
-# Scraping global
-# -----------------------------
-def scrape_all_pharmacies(urls):
-    driver = create_driver(headless=True)
-    data = []
-
-    try:
-        for url in urls:
-            data.append(scrape_pharmacy(driver, url))
-    finally:
-        driver.quit()
-
-    return pd.DataFrame(data)
-
-# -----------------------------
-# Fonction principale
-# -----------------------------
-def main(search_url):
-    # 👈 Chrome invisible
-    driver = create_driver(headless=True)
-
-    try:
-        urls = get_pharmacy_urls(driver, search_url)
-    finally:
-        driver.quit()
-
-    df = scrape_all_pharmacies(urls)
-    return df
-
-# -----------------------------
-# Interface Streamlit
-# -----------------------------
-st.set_page_config(page_title="Scraper Pharmacies", layout="wide")
-st.title("💊 Scraper Pharmacies – PagesJaunes")
-
-with st.form("my_form"):
-    reason = st.text_input("Colle ici l'URL PagesJaunes ...")
-    submitted = st.form_submit_button("Lancer le scraping")
-
-if submitted:
-    st.write("⌛ ATTENDRE 30 SECONDES …")
-    df = main(reason)
-    st.success(f"✅ {len(df)} pharmacies récupérées")
-    st.dataframe(df)
-    st.write("-----------")
-
-
-
-
-
-
-
-import streamlit as st      
-
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-import pandas as pd
-import requests
-import time
-url = "https://www.pagesjaunes.fr/annuaire/chercherlespros?quoiqui=edition%20de%20logiciel&ou=paris-75&page=2"
-options = Options()
-options.add_argument("--headless")
-
-driver = webdriver.Chrome(
-    service=Service(ChromeDriverManager().install()),
-    options=options
-)
-
-driver.get(url)
-time.sleep(5)  # attendre le chargement JS
-base_url = "https://www.pagesjaunes.fr"
-
-# Récupérer tous les href relatifs et les convertir en URL complètes
-elements = driver.find_elements(By.CSS_SELECTOR, 'a.bi-denomination.pj-link')
-max_urls = []
-for e in elements:
-        href = e.get_attribute("href")
-        if href.startswith("/"):  # href relatif
-            full_url = base_url + href
-        else:  # href déjà complet
-            full_url = href
-        max_urls.append(full_url)  # ajouter tous les liens complets
-        print(full_url)
-
-
-driver.quit()
-
-# La liste finale de tous les liens complets
-max_urls
-# Filtrer les liens : supprimer ceux contenant "annuaire"
-max_urls_filtered = [url for url in max_urls if "annuaire" not in url]
-
-# Vérifier
-max_urls_filtered
-df = pd.DataFrame(max_urls_filtered)
-st.dataframe(df)
