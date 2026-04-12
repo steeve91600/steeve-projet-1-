@@ -1,117 +1,81 @@
 import streamlit as st 
 
-st.set_page_config(page_title="Steeve Orville Application Quatro",
+st.set_page_config(page_title="Steeve  Application",
      layout="wide")
 
 
-st.title(":blue[Prédiction] d'approbation de prèt :cold:",help=" Merci d'être là mon ami !", text_alignment="center")
-
-st.write("Bienvenue dans  notre application ! ")
+st.title(":orange[Baby] :blue[time] :blue[application] :clock230:",help=" Merci d'être là mon ami !", text_alignment="center")
 
 
-st.space("medium")
 
-
+import datetime
 import streamlit as st
 
-left, middle, right = st.columns(3)
-if left.button("Exploration des données", width="stretch"):
-    left.markdown("You clicked the plain button.")
-if middle.button("Prédiction", width="stretch"):
-    middle.markdown("You clicked the emoji button.")
-if right.button("Performance du modele", width="stretch"):
-    right.markdown("You clicked the Material button.")
-
-
-
-
-
-
+import datetime
 import streamlit as st
 import pandas as pd
+import os
 
+file_path = "avrivril.xlsx"
 
-st.sidebar.title("Steeve Orville Application")
-st.sidebar.image("logo.jpg")
-add_selectbox = st.sidebar.selectbox(
-    "Choisis ton modèle ",
-    ("Logistique Regression", "Random Forest")
+# --- Inputs ---
+event_time = st.datetime_input(
+    "Heure et date automatique",
+    datetime.datetime.now()
 )
-st.space("medium")
+
+genre = st.radio(
+    "Fais ton choix ",
+    ["SG", "SD"],
+    index=None,
+)
+
+# --- Bouton Enregistrer ---
+if st.button("Enregistrer"):
+    
+    if genre is not None:
+
+        new_data = pd.DataFrame([{
+            "Date": event_time,
+            "Genre": genre
+        }])
+        
+        if os.path.exists(file_path):
+            existing_data = pd.read_excel(file_path)
+            updated_data = pd.concat([existing_data, new_data], ignore_index=True)
+        else:
+            updated_data = new_data
+        
+        updated_data.to_excel(file_path, index=False)
+        
+        st.success("Données enregistrées ✅")
+        st.rerun()
+
+    else:
+        st.warning("Choisis un genre avant d'enregistrer ⚠️")
+
+# --- Affichage du tableau ---
 
 
 
-st.space("medium")
-st.subheader("Metriques", divider=True)
-col1, col2, col3,col4 = st.columns(4)
-col1.metric("Nombre total de demandes", "70 °F", "1.2 °F")
-col2.metric("Taux d'approbation global", "9 mph", "-8%")
-col3.metric("Montant moyen des prêts", "86%", "4%")
-col4.metric("Revenue moyen", "86%", "4%")
+st.subheader("📊 Données enregistrées")
 
-import plotly.express as px 
+if os.path.exists(file_path):
+    df = pd.read_excel(file_path)
 
+    # conversion obligatoire en datetime
+    df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
 
+    # 🔥 différence entre lignes
+    df["difference"] = df["Date"].diff()
+    df=df.sort_index(ascending=False)
+    st.dataframe(df, use_container_width=True)
+else:
+    st.info("Aucune donnée pour le moment")
 
+mean_diff = df["difference"].mean()
 
-df = pd.read_excel("Tableau_clean6.xlsx")
-df0=df[['TotalIncome','LoanAmountToIncome','EMI','Log_LoanAmount']]
+# conversion en minutes
+mean_minutes = mean_diff.total_seconds() / 60
 
-faux = pd.read_csv("loan_data.csv")
-st.space("medium")
-st.subheader("Distributions", divider=True)
-
-col1, col2= st.columns(2)
-
-
-
-
-
-
-
-col1.write("Histogramme des revenus")
-col1.bar_chart(faux['ApplicantIncome'])
-
-import streamlit as st
-import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
-
-
-
-fig, ax = plt.subplots()
-
-sns.boxplot(data=faux, x="LoanAmount", ax=ax)
-
-
-
-col2.write("Répartition des montants  de prêt")
-col2.pyplot(fig)
-
-st.space("medium")
-st.subheader("Corrélation", divider=True)
-
-
-st.write("Heatmap Correlation")
-
-# calcul matrice de corrélation
-corr = df0.corr()
-
-fig, ax = plt.subplots()
-
-sns.heatmap(corr, annot=True, cmap="coolwarm", ax=ax)
-
-st.pyplot(fig)
-
-
-import streamlit as st
-import pandas as pd
-
-# dataframe df déjà chargé
-approval_rate = faux.groupby("Education")["Loan_Status"].apply(lambda x: (x == "Y").mean())
-st.subheader("Taux d'approbation par éducation", divider=True)
-st.dataframe(approval_rate)
-st.bar_chart(approval_rate)
-st.write(faux.columns)
-
-#st.dataframe(df.style.highlight_max(axis=0))
+st.subheader(f":red[Il y a une TT en moyenne  toutes les {round(mean_minutes, 2)} minutes]")
