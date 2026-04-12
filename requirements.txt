@@ -9,3 +9,4 @@ selenium
 webdriver-manager
 plotly
 openpyxl
+pytz

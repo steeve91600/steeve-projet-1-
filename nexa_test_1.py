@@ -16,12 +16,15 @@ import streamlit as st
 import pandas as pd
 import os
 
+import pytz
 file_path = "avrivril.xlsx"
 
 # --- Inputs ---
+
+paris = pytz.timezone("Europe/Paris")
 event_time = st.datetime_input(
     "Heure et date automatique",
-    datetime.datetime.now()
+    datetime.datetime.now(paris)
 )
 
 genre = st.radio(
