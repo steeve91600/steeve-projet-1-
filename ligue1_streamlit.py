@@ -16,15 +16,30 @@ st.set_page_config(
 
 
 st.markdown(
-    "<h1 style='color:#6ADFF7;text-align:center;'> Ligue 1 savoir ⚽</h1>",
+    "<h1 style='color:#6ADFF7;text-align:center;'> Ce dashboard est en pause tant que le championnat de foot de ligue 1 est en pause ( merci de votre compréhension)  ⚽</h1>",
     unsafe_allow_html=True
 )
 
-st.subheader("Intro")
+st.title("SOMMAIRE")
+st.subheader("1. Intro ")
+st.subheader("2. Legende des colonnes")
+st.subheader("3. Classement général")
+st.subheader("4. Faut-il marquer beaucoup pour gagner le championnat ?")
+st.subheader("5. Quelle équipe est la plus ennuyante A ?")
+st.subheader("6. Les buts font-ils le classement ?")
+st.subheader("7. Faut-il faire des matchs nuls pour gagner ?")
+st.subheader("8. Qui est le plus équilibré ?")
+st.subheader("9. Qui est le plus équilibré B ?")
+st.subheader("10. Qui fait le spectacle ?")
+st.subheader("11. Peut-on marquer beaucoup de but et faire beaucoup de match nul ?")
+st.subheader("11. BILAN DE L'ANALYSE")
+
+
+st.subheader("1. Intro", divider=True)
 st.write("Bienvenue sur le projet **Ligue 1 savoir**, réalisé et publié par  Steeve  le Dimanche 11 Janvier 2026. Ce projet a pour but de présenter l’analyse de donnée .  ")
 st.write("Nommée « Ligue 1 savoir » , car l’objectif c’est le savoir et pas l’avoir . Nous allons donc essayer de comprendre en profondeur, c’est quoi la ligue 1 . Pour ceux qui ne savent rien , vraiment rien … la « Ligue 1 » , c’est le plus haut niveau du championnat de France de football . ")
 st.write(" Le premier chapitre de cette analyse portera sur le tableau  « Classement Général » . Ce tableau , résume ce qui se passe d’une manière général dans la Ligue 1 . Ce tableau est en streaming live, donc actualisé en temps réel . Les graphiques sont aussi en temps réel , seul les légendes de graphique et les titres sont manuels ( actualisé une fois par mois ). ")
-st.subheader("Légende des colonnes")
+st.subheader("2. Légende des colonnes", divider=True)
 st.write("Voici la légende des colonnes du « Classement Général » : ")
 st.write("**Equipe** : le nom de l’équipe en question")
 st.write("**Rang** : Place dans le classement ")
@@ -90,7 +105,7 @@ df['Addition_but']=df["But_mis"]+df["But_pris"]
 # -----------------------------
 # AFFICHAGE
 # -----------------------------
-st.subheader("📊 Classement général")
+st.subheader("3. Classement général", divider=True)
 st.dataframe(df, use_container_width=True)
 
 
@@ -104,7 +119,7 @@ st.dataframe(df, use_container_width=True)
 df.sort_values(["But_mis"] , ascending=True)
 
 
-st.subheader("Faut-il marquer beaucoup pour gagner le championnat ? ( Comparaison Buts mis/ Points final )")
+st.subheader("4. Faut-il marquer beaucoup pour gagner le championnat ? ( Comparaison Buts mis/ Points final )", divider=True)
 
 
 st.write("Légende : Ce premier tableau montre une simple division entre le nombre de point et le nombre de but .Voici donc comme resulta un Rapport point/but .Pour bien expliquer , l'équipe en haut du tableau est une equipe qui marque beaucou^p de but mais a beaucuop de points au classement")
@@ -159,7 +174,7 @@ with col2:
     st.altair_chart(chart, use_container_width=False)
 
 
-st.subheader("Quelle équipe est la plus ennuyante A ?( Histogramme des matchs nuls)")
+st.subheader("5. Quelle équipe est la plus ennuyante A ?( Histogramme des matchs nuls)", divider=True)
 
 st.write("Légende: Ce visuel montre quelle sont les équipe qui font le plus de match nul . Et c'est Lorient, le Havre et Rennes qui gagnent avec 7 matchs nuls chacun")
 
@@ -188,7 +203,7 @@ st.write('Réponse :')
 
 
 
-st.subheader("Les buts font-ils le classement? (Comparaison Points / Différence de buts")
+st.subheader("6. Les buts font-ils le classement? (Comparaison Points / Différence de buts", divider=True)
 st.write("Légende : Ce visuel compare la différence de but et le nombre de point.")
 
 st.bar_chart(
@@ -197,7 +212,7 @@ st.bar_chart(
 )
 
 
-st.subheader("Faut-il faire des matchs nul pour gagner ?  ")
+st.subheader("7. Faut-il faire des matchs nul pour gagner ?  ", divider=True)
 st.write('Légende : Ce visuel compare le nombre de match nul et le nombre de point . Et la réponse est clair, Lens n a pas besion de faire de match nul pour gagner ! ')
 
 st.bar_chart(
@@ -209,7 +224,7 @@ st.bar_chart(
 
 
 
-st.subheader("Qui est le plus équilibré ? ( Comparaison Buts mis/ But pris )")
+st.subheader("8. Qui est le plus équilibré ? ( Comparaison Buts mis/ But pris )", divider=True)
 st.write('Légende : Ce rapport compare les Buts mis et les Buts pris . Ainsi Monaco semble aimer mettre des buts et prendre des but !')
 st.bar_chart(
     df[["But_mis", "But_pris"]],
@@ -219,7 +234,7 @@ st.bar_chart(
 
 
 
-st.subheader("Qui est le plus équilibré B ? ( Comparaison Buts mis/ But pris )")
+st.subheader("9. Qui est le plus équilibré B ? ( Comparaison Buts mis/ But pris )", divider=True)
 df_reset = df.reset_index()
 
 st.write("Légende : Voici un nuage de point et un droite de regression linéaire. ")
@@ -250,7 +265,7 @@ with col2:
 
 
 
-st.subheader("Qui fait le spectacle ?( But marqué + But encaissé )")
+st.subheader("10 .Qui fait le spectacle ?( But marqué + But encaissé )", divider=True)
 
 st.write("Légende: Ce visuel montre quelle sont les équipe qui font le plus de match nul . Et c'est Lorient, le Havre et Rennes qui gagnent avec 7 matchs nuls chacun")
 
@@ -269,7 +284,7 @@ chart = alt.Chart(df_sorted).mark_bar(color="#b852dd").encode(
 st.altair_chart(chart, use_container_width=True)
 
 
-st.subheader("Peut-on marquer beaucoup de but et faire beaucoup de match nul ? ")
+st.subheader("11. Peut-on marquer beaucoup de but et faire beaucoup de match nul ? ", divider=True)
 st.write("Légende: De ce graphique ce détache Le Havre qui fait beaucoup de match nul et ne montre pas beaucoup de but ")
 
 import altair as alt
@@ -385,6 +400,9 @@ chart = alt.Chart(df_alt).mark_circle(size=80).encode(
 )
 
 st.altair_chart(chart, use_container_width=True)
+
+
+
 
 
 
