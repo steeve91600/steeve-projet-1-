@@ -7,101 +7,100 @@ import seaborn as sns
 import altair as alt
 
 
-# ============================================================
-# CONFIG STREAMLIT
-# ============================================================
-
-st.set_page_config(
-    page_title="Ligue 1 - Analyse",
-    layout="wide"
-)
-
-
-# ============================================================
-# SCRAPING
-# ============================================================
-
-@st.cache_data(ttl=3600)
-def load_data():
-
-    url = "https://www.maxifoot.fr/resultat-ligue-1-france.htm"
-
-    headers = {
-        "User-Agent": "Mozilla/5.0"
-    }
-
-    response = requests.get(url, headers=headers)
-
-    soup = BeautifulSoup(
-        response.content,
-        "html.parser"
-    )
-
-    table = soup.find(
-        "table",
-        class_="clas1"
-    )
-
-    rows = table.find_all("tr")
-
-    data = []
-
-    for row in rows[1:]:
-
-        cols = [
-            c.text.strip()
-            for c in row.find_all("td")
-        ]
-
-        if len(cols) == 10:
-            data.append(cols)
-
-    columns = [
-        "Rang",
-        "Equipe",
-        "Points",
-        "Joués",
-        "Match_gagnee",
-        "Match_nul",
-        "Match_perdu",
-        "But_mis",
-        "But_pris",
-        "Difference_but"
-    ]
-
-    df = pd.DataFrame(
-        data,
-        columns=columns
-    )
-
-    int_cols = [
-        "Rang",
-        "Points",
-        "Match_gagnee",
-        "Match_nul",
-        "Match_perdu",
-        "But_mis",
-        "But_pris",
-        "Difference_but"
-    ]
-
-    for col in int_cols:
-        df[col] = df[col].astype(int)
-
-    df = df.set_index("Equipe")
-
-    return df
-
-
-# ============================================================
-# RENDER
-# ============================================================
-
 def render():
 
-    # --------------------------------------------------------
+    # ============================================================
+    # CONFIG STREAMLIT
+    # ============================================================
+
+    st.set_page_config(
+        page_title="Ligue 1 - Analyse",
+        layout="wide"
+    )
+
+
+    # ============================================================
+    # SCRAPING
+    # ============================================================
+
+    @st.cache_data(ttl=3600)
+    def load_data():
+
+        url = "https://www.maxifoot.fr/resultat-ligue-1-france.htm"
+
+        headers = {
+            "User-Agent": "Mozilla/5.0"
+        }
+
+        response = requests.get(
+            url,
+            headers=headers
+        )
+
+        soup = BeautifulSoup(
+            response.content,
+            "html.parser"
+        )
+
+        table = soup.find(
+            "table",
+            class_="clas1"
+        )
+
+        rows = table.find_all("tr")
+
+        data = []
+
+        for row in rows[1:]:
+
+            cols = [
+                c.text.strip()
+                for c in row.find_all("td")
+            ]
+
+            if len(cols) == 10:
+                data.append(cols)
+
+        columns = [
+            "Rang",
+            "Equipe",
+            "Points",
+            "Joués",
+            "Match_gagnee",
+            "Match_nul",
+            "Match_perdu",
+            "But_mis",
+            "But_pris",
+            "Difference_but"
+        ]
+
+        df = pd.DataFrame(
+            data,
+            columns=columns
+        )
+
+        int_cols = [
+            "Rang",
+            "Points",
+            "Match_gagnee",
+            "Match_nul",
+            "Match_perdu",
+            "But_mis",
+            "But_pris",
+            "Difference_but"
+        ]
+
+        for col in int_cols:
+            df[col] = df[col].astype(int)
+
+        df = df.set_index("Equipe")
+
+        return df
+
+
+    # ============================================================
     # CHARGEMENT DES DONNÉES
-    # --------------------------------------------------------
+    # ============================================================
 
     df = load_data()
 
@@ -111,9 +110,9 @@ def render():
     )
 
 
-    # ========================================================
+    # ============================================================
     # TITRE
-    # ========================================================
+    # ============================================================
 
     st.markdown(
         """
@@ -125,9 +124,9 @@ def render():
     )
 
 
-    # ========================================================
+    # ============================================================
     # SOMMAIRE
-    # ========================================================
+    # ============================================================
 
     st.title("SOMMAIRE")
 
@@ -149,9 +148,9 @@ def render():
     st.subheader("16. Statistiques descriptives")
 
 
-    # ========================================================
+    # ============================================================
     # 1. INTRO
-    # ========================================================
+    # ============================================================
 
     st.subheader(
         "1. Intro",
@@ -174,9 +173,9 @@ def render():
     )
 
 
-    # ========================================================
+    # ============================================================
     # 2. LÉGENDE DES COLONNES
-    # ========================================================
+    # ============================================================
 
     st.subheader(
         "2. Légende des colonnes",
@@ -200,9 +199,9 @@ def render():
     )
 
 
-    # ========================================================
+    # ============================================================
     # 3. CLASSEMENT GÉNÉRAL
-    # ========================================================
+    # ============================================================
 
     st.subheader(
         "3. Classement général",
@@ -215,9 +214,9 @@ def render():
     )
 
 
-    # ========================================================
+    # ============================================================
     # 4. BUTS MARQUÉS
-    # ========================================================
+    # ============================================================
 
     st.subheader(
         "4. Les buts marqués",
@@ -229,7 +228,8 @@ def render():
     )
 
     df3 = (
-        df.sort_values(
+        df
+        .sort_values(
             "But_mis",
             ascending=True
         )
@@ -263,9 +263,9 @@ def render():
     )
 
 
-    # ========================================================
+    # ============================================================
     # 5. BUTS ENCAISSÉS
-    # ========================================================
+    # ============================================================
 
     st.subheader(
         "5. Les buts encaissés",
@@ -273,7 +273,8 @@ def render():
     )
 
     df3 = (
-        df.sort_values(
+        df
+        .sort_values(
             "But_pris",
             ascending=True
         )
@@ -307,9 +308,9 @@ def render():
     )
 
 
-    # ========================================================
+    # ============================================================
     # 6. MATCHS NULS
-    # ========================================================
+    # ============================================================
 
     st.subheader(
         "6. Les matchs nuls",
@@ -317,7 +318,8 @@ def render():
     )
 
     df3 = (
-        df.sort_values(
+        df
+        .sort_values(
             "Match_nul",
             ascending=True
         )
@@ -351,9 +353,9 @@ def render():
     )
 
 
-    # ========================================================
+    # ============================================================
     # 7. MATCHS GAGNÉS
-    # ========================================================
+    # ============================================================
 
     st.subheader(
         "7. Les matchs gagnés",
@@ -361,7 +363,8 @@ def render():
     )
 
     df3 = (
-        df.sort_values(
+        df
+        .sort_values(
             "Match_gagnee",
             ascending=True
         )
@@ -395,9 +398,9 @@ def render():
     )
 
 
-    # ========================================================
+    # ============================================================
     # 8. MATCHS PERDUS
-    # ========================================================
+    # ============================================================
 
     st.subheader(
         "8. Les matchs perdus",
@@ -405,7 +408,8 @@ def render():
     )
 
     df3 = (
-        df.sort_values(
+        df
+        .sort_values(
             "Match_perdu",
             ascending=True
         )
@@ -439,9 +443,9 @@ def render():
     )
 
 
-    # ========================================================
+    # ============================================================
     # 9. NORMALISATION
-    # ========================================================
+    # ============================================================
 
     st.subheader(
         "9. Vision globale des 5 valeurs",
@@ -483,16 +487,10 @@ def render():
         stack=True
     )
 
-    st.write(
-        "**Légende :** Rouge = buts mis, "
-        "bleu = buts pris, vert = matchs gagnés, "
-        "orange = matchs nuls, violet = matchs perdus."
-    )
 
-
-    # ========================================================
+    # ============================================================
     # 10. RAPPORT BUTS / POINTS
-    # ========================================================
+    # ============================================================
 
     st.subheader(
         "10. Faut-il marquer beaucoup pour gagner ?",
@@ -529,12 +527,71 @@ def render():
     )
 
 
-    # ========================================================
+    # ============================================================
     # GRAPHIQUE POINTS / BUTS
-    # ========================================================
+    # ============================================================
+    df4 = df.sort_values("Points", ascending=True).reset_index()
+
+    df4["Equipe"] = pd.Categorical(
+      df4["Equipe"],
+      categories=df4["Equipe"].tolist(),
+      ordered=True
+    )
+
+    st.bar_chart(
+        df4,
+        x="Equipe",
+        y=["Points", "But_mis"],
+        color=["#BEEF4C","#EF6DBD"],
+        stack=False
+    )
+
+   
+
+    # ============================================================
+    # RÉGRESSION POINTS / BUTS
+    # ============================================================
+
+    df_scatter = df.reset_index()
+
+    chart = alt.Chart(df_scatter).mark_circle(
+         size=100
+    ).encode(
+     x=alt.X(
+        "Points:Q",
+        title="Points"
+     ),
+     y=alt.Y(
+        "But_mis:Q",
+        title="Buts marqués"
+     ),
+     color=alt.Color(
+        "Equipe:N",
+        title="Équipe"
+     ),
+     tooltip=[
+        "Equipe:N",
+        "Points:Q",
+        "But_mis:Q"
+     ]
+    )
+
+    st.altair_chart(
+      chart,
+      use_container_width=True
+    )
+    # ============================================================
+    # 11. POINTS / DIFFÉRENCE DE BUTS
+    # ============================================================
+
+    st.subheader(
+        "11. Les buts font-ils le classement ?",
+        divider=True
+    )
 
     df4 = (
-        df.sort_values(
+        df
+        .sort_values(
             "Points",
             ascending=True
         )
@@ -546,7 +603,7 @@ def render():
     chart = alt.Chart(df4).transform_fold(
         [
             "Points",
-            "But_mis"
+            "Difference_but"
         ],
         as_=[
             "Statistique",
@@ -583,65 +640,9 @@ def render():
     )
 
 
-    # ========================================================
-    # 11. POINTS / DIFFÉRENCE DE BUTS
-    # ========================================================
-
-    st.subheader(
-        "11. Les buts font-ils le classement ?",
-        divider=True
-    )
-
-    df4 = (
-        df.sort_values(
-            "Points",
-            ascending=True
-        )
-        .reset_index()
-    )
-
-    ordre = df4["Equipe"].tolist()
-
-    chart = alt.Chart(df4).transform_fold(
-        [
-            "Points",
-            "Difference_but"
-        ],
-        as_=[
-            "Statistique",
-            "Valeur"
-        ]
-    ).mark_bar().encode(
-
-        x=alt.X(
-            "Equipe:N",
-            sort=ordre
-        ),
-
-        y=alt.Y(
-            "Valeur:Q"
-        ),
-
-        color=alt.Color(
-            "Statistique:N"
-        ),
-
-        tooltip=[
-            "Equipe:N",
-            "Statistique:N",
-            "Valeur:Q"
-        ]
-    )
-
-    st.altair_chart(
-        chart,
-        use_container_width=True
-    )
-
-
-    # ========================================================
+    # ============================================================
     # 12. MATCHS NULS / POINTS
-    # ========================================================
+    # ============================================================
 
     st.subheader(
         "12. Faut-il faire des matchs nuls pour gagner ?",
@@ -668,9 +669,9 @@ def render():
     )
 
 
-    # ========================================================
-    # 13. ÉQUILIBRE BUTS MIS / BUTS PRIS
-    # ========================================================
+    # ============================================================
+    # 13. ÉQUILIBRE BUTS
+    # ============================================================
 
     st.subheader(
         "13. Qui est le plus équilibré ?",
@@ -679,7 +680,9 @@ def render():
 
     df_reset = df.reset_index()
 
-    points = alt.Chart(df_reset).mark_circle(
+    points = alt.Chart(
+        df_reset
+    ).mark_circle(
         size=100
     ).encode(
 
@@ -714,9 +717,9 @@ def render():
     )
 
 
-    # ========================================================
+    # ============================================================
     # 14. QUI FAIT LE SPECTACLE ?
-    # ========================================================
+    # ============================================================
 
     st.subheader(
         "14. Qui fait le spectacle ?",
@@ -724,7 +727,8 @@ def render():
     )
 
     df3 = (
-        df.sort_values(
+        df
+        .sort_values(
             "Addition_but",
             ascending=True
         )
@@ -760,9 +764,9 @@ def render():
     )
 
 
-    # ========================================================
+    # ============================================================
     # 15. ADDITION BUTS / MATCHS NULS
-    # ========================================================
+    # ============================================================
 
     st.subheader(
         "15. Peut-on marquer beaucoup de buts et faire beaucoup de matchs nuls ?",
@@ -771,7 +775,9 @@ def render():
 
     df_alt = df.reset_index()
 
-    chart = alt.Chart(df_alt).mark_circle(
+    chart = alt.Chart(
+        df_alt
+    ).mark_circle(
         size=160
     ).encode(
 
@@ -809,9 +815,9 @@ def render():
     )
 
 
-    # ========================================================
+    # ============================================================
     # 16. BOXPLOTS + CAMEMBERT
-    # ========================================================
+    # ============================================================
 
     col1, col2, col3 = st.columns(3)
 
@@ -913,12 +919,12 @@ def render():
         )
 
 
-    # ========================================================
+    # ============================================================
     # STATISTIQUES DESCRIPTIVES
-    # ========================================================
+    # ============================================================
 
     st.subheader(
-        "Statistiques descriptives",
+        "16. Statistiques descriptives",
         divider=True
     )
 
@@ -928,9 +934,9 @@ def render():
     )
 
 
-    # ========================================================
+    # ============================================================
     # GRAPHIQUE VEGA LITE INTERACTIF
-    # ========================================================
+    # ============================================================
 
     st.subheader(
         "Analyse interactive",
@@ -1044,7 +1050,6 @@ def render():
 
 
 # ============================================================
-# LANCEMENT DE L'APPLICATION
+# LANCEMENT
 # ============================================================
 
-render()
